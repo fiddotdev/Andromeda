@@ -27,11 +27,10 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
 
   if (network === Network.Testnet) {
     console.log('fetching user information');
-    const casts = await farcasterClient.getUserData({
+    const casts = await farcasterClient.getCastsByFid({
       fid,
-      userDataType: UserDataType.FNAME,
+      pageSize: 50,
     });
-    console.log("got user info");
     if (casts.isOk()) {
       const castMessages = casts.value;
 
@@ -40,6 +39,7 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
         data: castMessages,
       });
     } else {
+      console.log(casts.error);
       return res.status(500).json({
         status: 500,
         data: 'Internal Server Error',
@@ -60,6 +60,7 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
         data: castMessages,
       });
     } else {
+      console.error(casts.error);
       return res.status(500).json({
         status: 500,
         data: 'Internal Server Error',

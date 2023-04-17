@@ -26,7 +26,7 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
   const network: Network = res.locals.farcasterNetwork as Network;
 
   if (network === Network.Testnet) {
-    const casts = await farcasterClient.getCastsByFid({ fid });
+    const casts = await farcasterClient.getCastsByFid({ fid, pageSize: 50 });
     if (casts.isOk()) {
       const castMessages = casts.value;
 
@@ -41,7 +41,10 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
       });
     }
   } else if (network === Network.Mainnet) {
-    const casts = await mainnetFarcasterClient.getCastsByFid({ fid });
+    const casts = await mainnetFarcasterClient.getCastsByFid({
+      fid,
+      pageSize: 50,
+    });
     if (casts.isOk()) {
       const castMessages = casts.value;
 

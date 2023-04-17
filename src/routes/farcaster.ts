@@ -22,7 +22,6 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
 
   if (!fid) return res.status(400).json({ status: 400, data: 'Missing FID' });
 
-  // vv This is undefined?
   const network: Network = res.locals.farcasterNetwork as Network;
 
   if (network === Network.Testnet) {
@@ -41,10 +40,12 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
       });
     }
   } else if (network === Network.Mainnet) {
+    console.log("Fetching casts");
     const casts = await mainnetFarcasterClient.getCastsByFid({
       fid,
       pageSize: 50,
     });
+    console.log("Fetched casts");
     if (casts.isOk()) {
       const castMessages = casts.value;
 

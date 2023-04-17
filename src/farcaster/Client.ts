@@ -5,4 +5,8 @@ const farcasterClient = getInsecureHubRpcClient(
   `${envProvider.FARCASTER_RPC_URL}:${envProvider.FARCASTER_RPC_PORT}`
 );
 
-export default farcasterClient;
+const mainnetFarcasterClient = getInsecureHubRpcClient(
+  `${envProvider.MAINNET_FARCASTER_RPC_URL}:${envProvider.MAINNET_FARCASTER_RPC_PORT}`
+);
+
+export { farcasterClient, mainnetFarcasterClient };

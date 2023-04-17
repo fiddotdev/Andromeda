@@ -10,8 +10,6 @@ import { Database } from '../database/models';
 import envProvider from '../providers/EnvProvider';
 import pg from 'pg';
 const { Pool } = pg;
-import * as url from 'url';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export async function migrateToLatest() {
   const db = new Kysely<Database>({

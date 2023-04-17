@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateAPIKey } from '../middleware/validateAPIKey';
-import farcasterClient from '../farcaster/Client';
+import { farcasterClient, mainnetFarcasterClient } from '../farcaster/Client';
 import { Network } from '../database/models';
 
 export const farcasterRouter = express.Router();
@@ -41,7 +41,7 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
       });
     }
   } else if (network === Network.Mainnet) {
-    const casts = await farcasterClient.getCastsByFid({ fid });
+    const casts = await mainnetFarcasterClient.getCastsByFid({ fid });
     if (casts.isOk()) {
       const castMessages = casts.value;
 

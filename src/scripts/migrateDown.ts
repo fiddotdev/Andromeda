@@ -8,8 +8,6 @@ import {
   FileMigrationProvider,
 } from 'kysely';
 import { Database } from '../database/models';
-import * as url from 'url';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const { Pool } = pg;
 
 async function migrateDown() {

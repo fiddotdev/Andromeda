@@ -9,6 +9,8 @@ export type EnvConfig = {
   POSTGRES_DB: string;
   FARCASTER_RPC_URL: string;
   FARCASTER_RPC_PORT: string;
+  MAINNET_FARCASTER_RPC_URL: string;
+  MAINNET_FARCASTER_RPC_PORT: string;
   JWT_KEY: string;
 };
 
@@ -20,6 +22,8 @@ const envProvider: EnvConfig = {
   POSTGRES_DB: process.env.POSTGRES_DB ?? '',
   FARCASTER_RPC_URL: process.env.FARCASTER_RPC_URL ?? '',
   FARCASTER_RPC_PORT: process.env.FARCASTER_RPC_PORT ?? '',
+  MAINNET_FARCASTER_RPC_URL: process.env.FARCASTER_RPC_URL ?? '',
+  MAINNET_FARCASTER_RPC_PORT: process.env.FARCASTER_RPC_PORT ?? '',
   JWT_KEY: process.env.JWT_KEY ?? '',
 };
 

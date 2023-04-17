@@ -1,7 +1,8 @@
 import { getInsecureHubRpcClient } from '@farcaster/hub-nodejs';
+import envProvider from "../providers/EnvProvider";
 
 const farcasterClient = getInsecureHubRpcClient(
-  'usw1.testnet.hubble.withportals.xyz:2283'
+  `${envProvider.FARCASTER_RPC_URL}:${envProvider.FARCASTER_RPC_PORT}`
 );
 
 export default farcasterClient;

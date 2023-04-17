@@ -1,40 +1,75 @@
-// import express from 'express';
-// import apiKeyAuth from '../middleware/apiKeyAuth';
-// import db from '../database';
-// import { KeysTable } from '../database/models';
-// import { v4 as uuidv4 } from 'uuid';
-// import crypto from 'crypto';
-//
-// export const keysRouter = express.Router();
-//
-// keysRouter.use(apiKeyAuth);
-//
-// keysRouter.post('/new', async (req, res) => {
-//     const { network } = req.body;
-//     const { username } = req;
-//
-//     if (!network || !['Testnet', 'Mainnet'].includes(network)) {
-//         res.status(400).send({ error: 'Valid network is required: Testnet or Mainnet' });
-//         return;
-//     }
-//
-//     const keyId = uuidv4();
-//     const apiKey = crypto.randomBytes(32).toString('hex');
-//
-//     const newKey: KeysTable = {
-//         id: keyId,
-//         apiKey,
-//         network,
-//         userId: username,
-//         createdAt: new Date(),
-//         updatedAt: new Date(),
-//     };
-//
-//     try {
-//         await db.insertInto('keys').values(newKey).execute();
-//         res.status(201).send({ apiKey });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send({ error: 'Failed to generate API key' });
-//     }
-// });
+import express from 'express';
+import { authenticateJwt } from '../middleware/authJWT';
+import crypto from 'crypto';
+import { KeysTable, Network } from '../database/models';
+import { v4 } from 'uuid';
+import db from '../database';
+import { Result } from '../types/Result';
+
+export const keysRouter = express.Router();
+
+interface Locals {
+  fid: number;
+  publicKey: string;
+}
+
+interface NewKeyRequest {
+  network: Network;
+}
+
+keysRouter.get('/all', authenticateJwt, async (req, res) => {
+  const { fid } = res.locals as Locals;
+
+  const keys = await db
+    .selectFrom('keys')
+    .selectAll()
+    .where('keys.fid', '=', fid)
+    .execute();
+
+  const result: Result = {
+    status: 200,
+    data: {
+      keys,
+    },
+  };
+
+  return res.status(result.status).json(result);
+});
+keysRouter.post(`/new`, authenticateJwt, async (req, res) => {
+  const { network } = req.body as NewKeyRequest;
+  const { fid } = res.locals as Locals;
+  const randomBytes = crypto.randomBytes(32);
+
+  // Encode the random buffer as a URL-safe Base64 string
+  const apiKey = randomBytes
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  if (!network || !(network in Network)) {
+    return res.status(400).json({
+      status: 400,
+      data: 'Please provide a valid network',
+    });
+  }
+
+  const newKey: KeysTable = {
+    id: String(v4()),
+    key: apiKey,
+    network,
+    fid,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+
+  await db.insertInto('keys').values(newKey).execute();
+  const result: Result = {
+    status: 201,
+    data: {
+      key: apiKey,
+    },
+  };
+
+  return res.status(result.status).json(result);
+});

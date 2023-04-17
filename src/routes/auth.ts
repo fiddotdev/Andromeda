@@ -1,61 +1,100 @@
 import express from 'express';
+import axios from 'axios';
 import { SignersTable, SignerStatus, UsersTable } from '../database/models';
-import requireFields from '../middleware/requireFields';
-import { Result } from '../types/Result';
+import { v4 } from 'uuid';
 import db from '../database';
+import { Result } from '../types/Result';
+import jwt from 'jsonwebtoken';
+import envProvider from '../providers/EnvProvider';
 
 export const authRouter = express.Router();
 
 interface AuthRequest {
-  fid: number;
-  pubkey: string;
+  publicKey: string;
+  token: string;
 }
 
-const requiredFields: (keyof AuthRequest)[] = ['fid', 'pubkey'];
+authRouter.get('/new', async (req, res) => {
+  const { publicKey, token } = req.query as Partial<AuthRequest>;
 
-authRouter.use(requireFields(requiredFields));
+  if (!publicKey || !token) {
+    return res
+      .status(400)
+      .send('Missing required fields: publicKey and/or token.');
+  }
 
-authRouter.post('/', async (req, res) => {
-  const { fid, pubkey } = req.body as AuthRequest;
+  const signerRequest = await axios
+    .get(`https://api.warpcast.com/v2/signer-request`, {
+      params: {
+        token,
+      },
+    })
+    .then((response) => response.data.result.signerRequest);
 
-  const aaa: SignersTable = {
-    id: '1',
-    fid,
-    pubkey,
-    status: SignerStatus.Active,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
+  if (signerRequest.base64SignedMessage) {
+    console.log('Signer was approved with fid ', signerRequest.fid);
+    const newSigner: SignersTable = {
+      id: String(v4()),
+      fid: signerRequest.fid,
+      pubkey: publicKey,
+      status: SignerStatus.Active,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
 
-  const newUser: UsersTable = {
-    fid,
-    fname: 'tst',
-    signerId: 'lol',
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
+    const newUser: UsersTable = {
+      fid: signerRequest.fid,
+      fname: 'example',
+      signerId: newSigner.id,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
 
-  try {
-    // On auth:
-    // Best way to authenticate here, post-verification (like days later)
-    // Get public key and private key
-    // Ensure that the keys match
-    // Use the getSigner Hub Method and pass the fid and public key, if it returns, then we're authenticated
+    await db
+      .updateTable('signers')
+      .set({ status: SignerStatus.Expired })
+      .where('signers.fid', '=', signerRequest.fid)
+      .execute();
 
-    await db.insertInto('signers').values(aaa).execute();
-    await db.insertInto('users').values(newUser).execute();
+    await db.insertInto('signers').values(newSigner).execute();
+    await db
+      .insertInto('users')
+      .values(newUser)
+      .onConflict((conflict) =>
+        conflict.column('fid').doUpdateSet({
+          signerId: newSigner.id,
+          updated_at: new Date(),
+        })
+      )
+      .execute();
+
+    const jwtPayload = {
+      fid: signerRequest.fid,
+      publicKey: publicKey,
+    };
+
+    const token = jwt.sign(jwtPayload, envProvider.JWT_KEY, {
+      expiresIn: '1h',
+    });
+
     const result: Result = {
       status: 201,
-      data: 'Created User',
+      data: {
+        status: 'successful',
+        fid: signerRequest.fid,
+        token,
+      },
     };
 
-    res.status(result.status).send(result);
-  } catch (err) {
-    console.error(err);
+    return res.status(result.status).json(result);
+  } else {
     const result: Result = {
-      status: 500,
-      data: 'Internal Server Error',
+      status: 200,
+      data: {
+        status: 'awaiting_signature',
+      },
     };
+
     return res.status(result.status).json(result);
   }
 });

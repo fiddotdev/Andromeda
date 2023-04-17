@@ -7,9 +7,9 @@ export type EnvConfig = {
   POSTGRES_PASSWORD: string;
   POSTGRES_PORT: number;
   POSTGRES_DB: string;
-  HASH_KEY: string;
   FARCASTER_RPC_URL: string;
   FARCASTER_RPC_PORT: string;
+  JWT_KEY: string;
 };
 
 const envProvider: EnvConfig = {
@@ -18,9 +18,9 @@ const envProvider: EnvConfig = {
   POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ?? '',
   POSTGRES_PORT: parseInt(process.env.POSTGRES_PORT ?? '', 10),
   POSTGRES_DB: process.env.POSTGRES_DB ?? '',
-  HASH_KEY: process.env.HASH_KEY ?? '',
   FARCASTER_RPC_URL: process.env.FARCASTER_RPC_URL ?? '',
   FARCASTER_RPC_PORT: process.env.FARCASTER_RPC_PORT ?? '',
+  JWT_KEY: process.env.JWT_KEY ?? '',
 };
 
 function validateConfig(config: EnvConfig) {

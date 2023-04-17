@@ -5,8 +5,8 @@ declare namespace NodeJS {
     POSTGRES_PASSWORD: string;
     POSTGRES_PORT: string;
     POSTGRES_DB: string;
-    HASH_KEY: string;
     FARCASTER_RPC_URL: string;
     FARCASTER_RPC_PORT: string;
+    JWT_KEY: string;
   }
 }

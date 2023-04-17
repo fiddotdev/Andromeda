@@ -6,20 +6,20 @@ export function validateAPIKey(
   res: Response,
   next: NextFunction
 ) {
-  console.log("Validate API key");
+  console.log('Validate API key');
   const authHeader = req.headers['authorization'];
 
   if (authHeader) {
     console.log(authHeader);
     const token = authHeader.split(' ')[1];
 
-    console.log("fetching");
+    console.log('fetching');
     db.selectFrom('keys')
       .selectAll()
       .where('keys.key', '=', token)
       .execute()
       .then((result) => {
-        console.log("next");
+        console.log('next');
         res.locals.farcasterNetwork = String(result[0].network);
         next();
       })

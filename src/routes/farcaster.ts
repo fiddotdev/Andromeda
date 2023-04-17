@@ -2,7 +2,6 @@ import express from 'express';
 import { validateAPIKey } from '../middleware/validateAPIKey';
 import { farcasterClient, mainnetFarcasterClient } from '../farcaster/Client';
 import { Network } from '../database/models';
-import { UserDataType } from '@farcaster/hub-nodejs';
 
 export const farcasterRouter = express.Router();
 

@@ -2,6 +2,7 @@ import express from 'express';
 import { validateAPIKey } from '../middleware/validateAPIKey';
 import { farcasterClient, mainnetFarcasterClient } from '../farcaster/Client';
 import { Network } from '../database/models';
+import { UserDataType } from '@farcaster/hub-nodejs';
 
 export const farcasterRouter = express.Router();
 
@@ -25,7 +26,12 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
   const network: Network = res.locals.farcasterNetwork as Network;
 
   if (network === Network.Testnet) {
-    const casts = await farcasterClient.getCastsByFid({ fid, pageSize: 50 });
+    console.log('fetching user information');
+    const casts = await farcasterClient.getUserData({
+      fid,
+      userDataType: UserDataType.FNAME,
+    });
+    console.log("got user info");
     if (casts.isOk()) {
       const castMessages = casts.value;
 
@@ -40,12 +46,12 @@ farcasterRouter.get('/castsbyfid', validateAPIKey, async (req, res) => {
       });
     }
   } else if (network === Network.Mainnet) {
-    console.log("Fetching casts");
+    console.log('Fetching casts');
     const casts = await mainnetFarcasterClient.getCastsByFid({
       fid,
       pageSize: 50,
     });
-    console.log("Fetched casts");
+    console.log('Fetched casts');
     if (casts.isOk()) {
       const castMessages = casts.value;
 
